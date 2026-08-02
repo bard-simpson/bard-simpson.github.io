@@ -17,23 +17,71 @@
 
     :root {
       color-scheme: light;
+      --bg: #faf8f5;
+      --ink: #3d3a35;
+      --muted: #8a847a;
+      --panel: #fffdf9;
+      --line: rgba(61, 58, 53, 0.12);
+      --accent: #6f8f7a;
+      --accent-soft: rgba(111, 143, 122, 0.14);
+      --shadow: 0 18px 50px rgba(61, 58, 53, 0.12);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
+      min-height: 100%;
+    }
+
+    body {
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: #faf8f5;
-      color: #3d3a35;
+      background: var(--bg);
+      color: var(--ink);
       font-family: "Fredoka", system-ui, sans-serif;
       font-weight: 300;
       letter-spacing: 0.04em;
       overflow: hidden;
+    }
+
+    body.menu-open,
+    body.panel-open {
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+      color: inherit;
+    }
+
+    .stage {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+
+    .name-button {
+      margin: 0;
+      padding: 0.2rem 0.4rem;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 0.75rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .name-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 6px;
     }
 
     h1 {
@@ -70,6 +118,246 @@
       }
     }
 
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      opacity: 0;
+      animation: fade-in 0.8s ease 2.1s forwards;
+    }
+
+    @keyframes fade-in {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      left: 50%;
+      min-width: min(18rem, 82vw);
+      padding: 0.45rem;
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate(-50%, -0.4rem) scale(0.98);
+      transition:
+        opacity 0.22s ease,
+        transform 0.28s var(--ease),
+        visibility 0.22s ease;
+      z-index: 20;
+    }
+
+    .menu.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    .menu button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 1rem;
+      border: 0;
+      border-radius: 0.75rem;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.18s ease;
+    }
+
+    .menu button:hover,
+    .menu button:focus-visible {
+      background: var(--accent-soft);
+      outline: none;
+    }
+
+    .menu .label {
+      font-size: 1.05rem;
+    }
+
+    .menu .meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(61, 58, 53, 0.18);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+      z-index: 30;
+    }
+
+    .backdrop.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(26rem, 100vw);
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transform: translateX(105%);
+      transition: transform 0.42s var(--ease);
+      z-index: 40;
+    }
+
+    .panel.open {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 1.25rem 0.75rem;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.55rem;
+      font-weight: 300;
+    }
+
+    .icon-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.18s ease;
+    }
+
+    .icon-button:hover,
+    .icon-button:focus-visible {
+      background: var(--accent-soft);
+      outline: none;
+    }
+
+    .todo-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem;
+      padding: 0.75rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .todo-form input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 0.9rem;
+      background: #fff;
+      outline: none;
+    }
+
+    .todo-form input:focus {
+      border-color: rgba(111, 143, 122, 0.55);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .todo-form button {
+      padding: 0.85rem 1.1rem;
+      border: 0;
+      border-radius: 0.9rem;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .todo-form button:hover,
+    .todo-form button:focus-visible {
+      filter: brightness(0.97);
+      outline: none;
+    }
+
+    .todo-list {
+      list-style: none;
+      margin: 0;
+      padding: 0.85rem 1rem 1.5rem;
+      overflow: auto;
+    }
+
+    .todo-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.85rem 0.7rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .todo-item:last-child {
+      border-bottom: 0;
+    }
+
+    .todo-item input[type="checkbox"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .todo-item span {
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+
+    .todo-item.done span {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .todo-item .remove {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .todo-item .remove:hover,
+    .todo-item .remove:focus-visible {
+      background: rgba(61, 58, 53, 0.06);
+      color: var(--ink);
+      outline: none;
+    }
+
+    .empty {
+      margin: 1.5rem 0.5rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       h1 .char {
         opacity: 1;
@@ -77,12 +365,251 @@
         filter: none;
         animation: none;
       }
+
+      .hint,
+      .menu,
+      .backdrop,
+      .panel {
+        animation: none;
+        transition: none;
+      }
     }
   </style>
 </head>
 <body>
-  <h1 aria-label="Bard Simpson">
-    <span class="char" style="--i:0">B</span><span class="char" style="--i:1">a</span><span class="char" style="--i:2">r</span><span class="char" style="--i:3">d</span><span class="space" aria-hidden="true"></span><span class="char" style="--i:4">S</span><span class="char" style="--i:5">i</span><span class="char" style="--i:6">m</span><span class="char" style="--i:7">p</span><span class="char" style="--i:8">s</span><span class="char" style="--i:9">o</span><span class="char" style="--i:10">n</span>
-  </h1>
+  <div class="stage">
+    <button
+      class="name-button"
+      id="nameButton"
+      type="button"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-controls="mainMenu"
+    >
+      <h1 aria-label="Bard Simpson">
+        <span class="char" style="--i:0">B</span><span class="char" style="--i:1">a</span><span class="char" style="--i:2">r</span><span class="char" style="--i:3">d</span><span class="space" aria-hidden="true"></span><span class="char" style="--i:4">S</span><span class="char" style="--i:5">i</span><span class="char" style="--i:6">m</span><span class="char" style="--i:7">p</span><span class="char" style="--i:8">s</span><span class="char" style="--i:9">o</span><span class="char" style="--i:10">n</span>
+      </h1>
+    </button>
+
+    <p class="hint">Tap the name</p>
+
+    <div class="menu" id="mainMenu" role="menu" hidden>
+      <button type="button" role="menuitem" id="openTodo">
+        <span class="label">Todo list</span>
+        <span class="meta">Open</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="backdrop" id="backdrop" hidden></div>
+
+  <aside
+    class="panel"
+    id="todoPanel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="todoTitle"
+    hidden
+  >
+    <div class="panel-header">
+      <h2 id="todoTitle">Todo list</h2>
+      <button class="icon-button" id="closeTodo" type="button" aria-label="Close todo list">
+        ✕
+      </button>
+    </div>
+
+    <form class="todo-form" id="todoForm">
+      <input
+        id="todoInput"
+        type="text"
+        name="todo"
+        placeholder="Add something to do"
+        autocomplete="off"
+        maxlength="200"
+      >
+      <button type="submit">Add</button>
+    </form>
+
+    <ul class="todo-list" id="todoList" aria-live="polite"></ul>
+  </aside>
+
+  <script>
+    (function () {
+      const storageKey = "bard-simpson-todos";
+      const nameButton = document.getElementById("nameButton");
+      const mainMenu = document.getElementById("mainMenu");
+      const openTodo = document.getElementById("openTodo");
+      const closeTodo = document.getElementById("closeTodo");
+      const backdrop = document.getElementById("backdrop");
+      const todoPanel = document.getElementById("todoPanel");
+      const todoForm = document.getElementById("todoForm");
+      const todoInput = document.getElementById("todoInput");
+      const todoList = document.getElementById("todoList");
+
+      let todos = loadTodos();
+
+      function loadTodos() {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveTodos() {
+        localStorage.setItem(storageKey, JSON.stringify(todos));
+      }
+
+      function renderTodos() {
+        todoList.innerHTML = "";
+
+        if (!todos.length) {
+          const empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = "Nothing here yet. Add your first task.";
+          todoList.appendChild(empty);
+          return;
+        }
+
+        todos.forEach((todo) => {
+          const item = document.createElement("li");
+          item.className = "todo-item" + (todo.done ? " done" : "");
+          item.dataset.id = todo.id;
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = Boolean(todo.done);
+          checkbox.setAttribute("aria-label", "Mark done");
+
+          const label = document.createElement("span");
+          label.textContent = todo.text;
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "remove";
+          remove.setAttribute("aria-label", "Remove task");
+          remove.textContent = "Remove";
+
+          checkbox.addEventListener("change", () => {
+            todo.done = checkbox.checked;
+            saveTodos();
+            renderTodos();
+          });
+
+          remove.addEventListener("click", () => {
+            todos = todos.filter((entry) => entry.id !== todo.id);
+            saveTodos();
+            renderTodos();
+          });
+
+          item.append(checkbox, label, remove);
+          todoList.appendChild(item);
+        });
+      }
+
+      function openMenu() {
+        mainMenu.hidden = false;
+        requestAnimationFrame(() => {
+          mainMenu.classList.add("open");
+        });
+        nameButton.setAttribute("aria-expanded", "true");
+        document.body.classList.add("menu-open");
+      }
+
+      function closeMenu() {
+        mainMenu.classList.remove("open");
+        nameButton.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("menu-open");
+        window.setTimeout(() => {
+          if (!mainMenu.classList.contains("open")) {
+            mainMenu.hidden = true;
+          }
+        }, 220);
+      }
+
+      function toggleMenu() {
+        if (mainMenu.classList.contains("open")) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      }
+
+      function openTodoPanel() {
+        closeMenu();
+        todoPanel.hidden = false;
+        backdrop.hidden = false;
+        requestAnimationFrame(() => {
+          todoPanel.classList.add("open");
+          backdrop.classList.add("open");
+        });
+        document.body.classList.add("panel-open");
+        window.setTimeout(() => todoInput.focus(), 280);
+      }
+
+      function closeTodoPanel() {
+        todoPanel.classList.remove("open");
+        backdrop.classList.remove("open");
+        document.body.classList.remove("panel-open");
+        window.setTimeout(() => {
+          if (!todoPanel.classList.contains("open")) {
+            todoPanel.hidden = true;
+            backdrop.hidden = true;
+          }
+        }, 420);
+        nameButton.focus();
+      }
+
+      nameButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleMenu();
+      });
+
+      openTodo.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openTodoPanel();
+      });
+
+      closeTodo.addEventListener("click", closeTodoPanel);
+      backdrop.addEventListener("click", closeTodoPanel);
+
+      document.addEventListener("click", (event) => {
+        if (!mainMenu.classList.contains("open")) return;
+        if (mainMenu.contains(event.target) || nameButton.contains(event.target)) return;
+        closeMenu();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        if (todoPanel.classList.contains("open")) {
+          closeTodoPanel();
+          return;
+        }
+        if (mainMenu.classList.contains("open")) {
+          closeMenu();
+        }
+      });
+
+      todoForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = todoInput.value.trim();
+        if (!text) return;
+
+        todos.unshift({
+          id: String(Date.now()) + "-" + Math.random().toString(16).slice(2),
+          text,
+          done: false
+        });
+        todoInput.value = "";
+        saveTodos();
+        renderTodos();
+        todoInput.focus();
+      });
+
+      renderTodos();
+    })();
+  </script>
 </body>
 </html>
