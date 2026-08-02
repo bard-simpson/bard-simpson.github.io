@@ -4,10 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bard Simpson</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: "Fredoka";
+      src:
+        url("assets/fonts/Fredoka-Light.woff2") format("woff2"),
+        url("assets/fonts/Fredoka-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       color-scheme: light;
     }
@@ -26,6 +33,7 @@
       font-family: "Fredoka", system-ui, sans-serif;
       font-weight: 300;
       letter-spacing: 0.04em;
+      overflow: hidden;
     }
 
     h1 {
@@ -34,6 +42,39 @@
       font-weight: 300;
       line-height: 1.1;
       text-align: center;
+      opacity: 0;
+      transform: translateY(0.55em) scale(0.92) rotate(-2deg);
+      filter: blur(6px);
+      animation: playful-in 1.35s cubic-bezier(0.22, 1.2, 0.36, 1) 0.15s forwards;
+    }
+
+    @keyframes playful-in {
+      0% {
+        opacity: 0;
+        transform: translateY(0.55em) scale(0.92) rotate(-2deg);
+        filter: blur(6px);
+      }
+      60% {
+        opacity: 1;
+        filter: blur(0);
+      }
+      80% {
+        transform: translateY(-0.08em) scale(1.03) rotate(1deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+        filter: blur(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      h1 {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        animation: none;
+      }
     }
   </style>
 </head>
