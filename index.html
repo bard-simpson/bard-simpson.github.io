@@ -42,34 +42,36 @@
       font-weight: 300;
       line-height: 1.1;
       text-align: center;
-      opacity: 0;
-      transform: translateY(0.55em) scale(0.92) rotate(-2deg);
-      filter: blur(6px);
-      animation: playful-in 1.35s cubic-bezier(0.22, 1.2, 0.36, 1) 0.15s forwards;
     }
 
-    @keyframes playful-in {
-      0% {
+    h1 .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(0.35em);
+      animation: letter-in 0.9s ease forwards;
+      animation-delay: calc(var(--i) * 0.16s + 0.2s);
+    }
+
+    h1 .space {
+      display: inline-block;
+      width: 0.35em;
+    }
+
+    @keyframes letter-in {
+      from {
         opacity: 0;
-        transform: translateY(0.55em) scale(0.92) rotate(-2deg);
-        filter: blur(6px);
+        transform: translateY(0.35em);
+        filter: blur(4px);
       }
-      60% {
+      to {
         opacity: 1;
-        filter: blur(0);
-      }
-      80% {
-        transform: translateY(-0.08em) scale(1.03) rotate(1deg);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1) rotate(0deg);
+        transform: translateY(0);
         filter: blur(0);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      h1 {
+      h1 .char {
         opacity: 1;
         transform: none;
         filter: none;
@@ -79,6 +81,8 @@
   </style>
 </head>
 <body>
-  <h1>Bard Simpson</h1>
+  <h1 aria-label="Bard Simpson">
+    <span class="char" style="--i:0">B</span><span class="char" style="--i:1">a</span><span class="char" style="--i:2">r</span><span class="char" style="--i:3">d</span><span class="space" aria-hidden="true"></span><span class="char" style="--i:4">S</span><span class="char" style="--i:5">i</span><span class="char" style="--i:6">m</span><span class="char" style="--i:7">p</span><span class="char" style="--i:8">s</span><span class="char" style="--i:9">o</span><span class="char" style="--i:10">n</span>
+  </h1>
 </body>
 </html>
