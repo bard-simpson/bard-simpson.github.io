@@ -1123,6 +1123,70 @@
       gap: 0.5rem;
     }
 
+    .th-queues {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(8.2rem, 1fr));
+      gap: 0.65rem;
+    }
+
+    .th-queue {
+      border: 1px solid var(--space-line);
+      border-radius: 1rem;
+      background: rgba(255,255,255,0.03);
+      padding: 0.55rem;
+      display: grid;
+      gap: 0.45rem;
+      align-content: start;
+    }
+
+    .th-queue.empty {
+      opacity: 0.55;
+      border-style: dashed;
+    }
+
+    .th-queue-label {
+      color: rgba(232,238,248,0.5);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .th-queue-empty {
+      color: rgba(232,238,248,0.35);
+      font-size: 0.9rem;
+      padding: 0.5rem 0.2rem;
+    }
+
+    .th-color-btn.top {
+      width: 100%;
+    }
+
+    .th-queue-rest {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      min-height: 1.4rem;
+    }
+
+    .th-mini {
+      display: inline-grid;
+      place-items: center;
+      min-width: 1.35rem;
+      height: 1.35rem;
+      padding: 0 0.25rem;
+      border-radius: 0.35rem;
+      background: var(--c);
+      color: #1b2433;
+      font-size: 0.72rem;
+      font-weight: 500;
+    }
+
+    .th-more {
+      color: rgba(232,238,248,0.45);
+      font-size: 0.78rem;
+      align-self: center;
+    }
+
     .th-color-btn {
       border: 1px solid var(--space-line);
       background: rgba(255,255,255,0.03);

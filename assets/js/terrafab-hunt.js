@@ -1,216 +1,564 @@
-/* Terrafab Hunt — Food Hunt-inspired pixel clear puzzle */
+/* Terrafab Hunt — harder Food Hunt-inspired wafer clear puzzle */
 (function (global) {
   "use strict";
 
-  const SAVE_KEY = "bard-simpson-terrafab-hunt-v1";
+  // v3 save: queue tops + tighter docks
+  const SAVE_KEY = "bard-simpson-terrafab-hunt-v3";
 
-  // Palette shared across levels (index 1..)
   const PALETTE = {
-    1: "#7aa2ff", // blue steel
-    2: "#f0b37a", // heat copper
-    3: "#7dcea0", // go / oxide
-    4: "#e8eef8", // lacquer white
-    5: "#c792ea", // plasma violet
-    6: "#ff7b72", // warning red
-    7: "#ffe08a"  // solar gold
+    1: "#7aa2ff",
+    2: "#f0b37a",
+    3: "#7dcea0",
+    4: "#e8eef8",
+    5: "#c792ea",
+    6: "#ff7b72",
+    7: "#ffe08a"
   };
 
-  // Each level: rows of digit strings, 0 empty
+  /**
+   * queues: array of columns. Only the first stack in each queue is deployable.
+   * A docked stack occupies a bay until its count is fully eaten.
+   * Wrong order => waiting stacks fill all docks => jam.
+   */
   const LEVELS = [
     {
-      id: "pad-light",
-      name: "Pad Light",
-      blurb: "One clean exposure.",
-      slots: 3,
+      id: "first-bay",
+      name: "First Bay",
+      blurb: "Only queue tops are live. Two docks.",
+      slots: 2,
       grid: [
-        "00011000",
-        "00111100",
-        "01111110",
-        "00111100",
-        "00011000",
-        "00011000",
-        "00022000",
-        "00022000"
+        "1111111",
+        "1222221",
+        "1233321",
+        "1233321",
+        "1222221",
+        "1111111"
+      ],
+      // 1:22 2:14 3:6
+      queues: [
+        [
+          { color: 2, count: 5 },
+          { color: 1, count: 8 },
+          { color: 3, count: 3 },
+          { color: 2, count: 4 }
+        ],
+        [
+          { color: 1, count: 7 },
+          { color: 3, count: 3 },
+          { color: 1, count: 4 },
+          { color: 2, count: 5 }
+        ],
+        [{ color: 1, count: 3 }]
       ]
     },
     {
-      id: "wafer-bite",
-      name: "Wafer Bite",
-      blurb: "Nibble the die first.",
-      slots: 3,
+      id: "false-edge",
+      name: "False Edge",
+      blurb: "The bright rim is bait.",
+      slots: 2,
       grid: [
-        "00111100",
-        "01333310",
-        "01322310",
-        "01333310",
-        "01322310",
-        "01333310",
-        "00111100",
-        "00000000"
+        "44444444",
+        "41111114",
+        "41222214",
+        "41233214",
+        "41233214",
+        "41222214",
+        "41111114",
+        "44444444"
+      ],
+      // 1:20 2:12 3:4 4:28
+      queues: [
+        [
+          { color: 4, count: 10 },
+          { color: 1, count: 8 },
+          { color: 2, count: 6 },
+          { color: 4, count: 8 }
+        ],
+        [
+          { color: 1, count: 6 },
+          { color: 4, count: 6 },
+          { color: 3, count: 2 },
+          { color: 2, count: 6 }
+        ],
+        [
+          { color: 1, count: 6 },
+          { color: 3, count: 2 },
+          { color: 4, count: 4 }
+        ]
       ]
     },
     {
-      id: "tiny-rocket",
-      name: "Tiny Rocket",
-      blurb: "Nose cone before engines.",
-      slots: 3,
+      id: "cross-lock",
+      name: "Cross Lock",
+      blurb: "Open both shells cold and you jam.",
+      slots: 2,
       grid: [
-        "00040000",
-        "00444000",
-        "04414400",
-        "04111140",
-        "04111140",
-        "00444000",
-        "00600600",
-        "06000060"
-      ]
-    },
-    {
-      id: "starlink-dot",
-      name: "Constellation Dot",
-      blurb: "Free the bus, then the wings.",
-      slots: 3,
-      grid: [
-        "00000000",
-        "05000050",
-        "00555500",
-        "00111100",
-        "01122110",
-        "00111100",
-        "00555500",
-        "05000050"
-      ]
-    },
-    {
-      id: "euv-bay",
-      name: "EUV Bay",
-      blurb: "Buried plasma needs a path.",
-      slots: 3,
-      grid: [
-        "22222222",
-        "21111112",
-        "21555512",
-        "21511512",
-        "21555512",
-        "21111112",
-        "23333332",
+        "11112222",
+        "10012002",
+        "10112112",
+        "10133312",
+        "10134312",
+        "10133312",
+        "11111112",
         "22222222"
+      ],
+      // 1:27 2:20 3:8 4:1
+      queues: [
+        [
+          { color: 1, count: 9 },
+          { color: 2, count: 7 },
+          { color: 3, count: 4 },
+          { color: 1, count: 8 }
+        ],
+        [
+          { color: 2, count: 6 },
+          { color: 1, count: 6 },
+          { color: 2, count: 5 },
+          { color: 3, count: 4 }
+        ],
+        [
+          { color: 1, count: 4 },
+          { color: 4, count: 1 },
+          { color: 2, count: 2 }
+        ]
       ]
     },
     {
-      id: "crane-arm",
-      name: "Gantry Arm",
-      blurb: "Slots are tight. Order matters.",
-      slots: 3,
+      id: "service-loop",
+      name: "Service Loop",
+      blurb: "Corridor first. Rooms later.",
+      slots: 2,
       grid: [
-        "33300000",
-        "31110000",
-        "30111000",
-        "30011140",
-        "30001140",
-        "30000140",
-        "22222220",
-        "00000000"
+        "111111111",
+        "100000001",
+        "101222201",
+        "101200201",
+        "101233201",
+        "101200201",
+        "101222201",
+        "100000001",
+        "111444111"
+      ],
+      // 1:34 2:14 3:2 4:3
+      queues: [
+        [
+          { color: 1, count: 10 },
+          { color: 2, count: 6 },
+          { color: 1, count: 8 },
+          { color: 3, count: 2 }
+        ],
+        [
+          { color: 1, count: 8 },
+          { color: 2, count: 5 },
+          { color: 4, count: 2 },
+          { color: 1, count: 5 }
+        ],
+        [
+          { color: 2, count: 3 },
+          { color: 4, count: 1 },
+          { color: 1, count: 3 }
+        ]
       ]
     },
     {
-      id: "chip-crest",
-      name: "Chip Crest",
-      blurb: "Four metals, three docks.",
-      slots: 3,
+      id: "twin-wells",
+      name: "Twin Wells",
+      blurb: "Two mouths. One crane.",
+      slots: 2,
       grid: [
-        "04444440",
-        "04111140",
-        "04133140",
-        "04122140",
-        "04133140",
-        "04111140",
-        "04555540",
-        "04444440"
+        "1111111111",
+        "1222202221",
+        "1200202021",
+        "1222202221",
+        "1111311111",
+        "1444344441",
+        "1400304041",
+        "1444344441",
+        "1111111111"
+      ],
+      // 1:41 2:18 3:4 4:17
+      queues: [
+        [
+          { color: 1, count: 12 },
+          { color: 2, count: 8 },
+          { color: 1, count: 10 },
+          { color: 4, count: 8 }
+        ],
+        [
+          { color: 1, count: 8 },
+          { color: 2, count: 6 },
+          { color: 4, count: 6 },
+          { color: 3, count: 2 }
+        ],
+        [
+          { color: 1, count: 6 },
+          { color: 2, count: 4 },
+          { color: 4, count: 3 },
+          { color: 3, count: 2 },
+          { color: 1, count: 5 }
+        ]
       ]
     },
     {
-      id: "falcon-stack",
-      name: "Stack Stage",
-      blurb: "Stage sep is a sequencing puzzle.",
-      slots: 4,
+      id: "gantry-pinch",
+      name: "Gantry Pinch",
+      blurb: "Unpin the arm before the deck floods.",
+      slots: 2,
       grid: [
-        "00077000",
-        "00711700",
-        "07111170",
-        "01111110",
-        "01222210",
-        "01233210",
-        "01222210",
-        "00600600",
-        "06000060"
+        "333300001",
+        "311100001",
+        "301110001",
+        "300111401",
+        "300011401",
+        "300001401",
+        "222222201",
+        "111111111"
+      ],
+      // 1:28 2:7 3:9 4:3
+      queues: [
+        [
+          { color: 3, count: 5 },
+          { color: 1, count: 10 },
+          { color: 2, count: 4 },
+          { color: 4, count: 2 }
+        ],
+        [
+          { color: 1, count: 8 },
+          { color: 3, count: 4 },
+          { color: 2, count: 3 },
+          { color: 1, count: 6 }
+        ],
+        [
+          { color: 1, count: 4 },
+          { color: 4, count: 1 }
+        ]
       ]
     },
     {
-      id: "orbital-ring",
-      name: "Orbital Ring",
-      blurb: "Don't dock the core too early.",
-      slots: 3,
+      id: "plasma-pocket",
+      name: "Plasma Pocket",
+      blurb: "Violet is sealed under overtime steel.",
+      slots: 2,
+      grid: [
+        "222222222",
+        "211111112",
+        "211555112",
+        "211515112",
+        "211555112",
+        "211111112",
+        "213333312",
+        "214444412",
+        "222222222"
+      ],
+      // 1:31 2:32 3:5 4:5 5:8
+      queues: [
+        [
+          { color: 2, count: 12 },
+          { color: 1, count: 12 },
+          { color: 5, count: 4 },
+          { color: 2, count: 8 }
+        ],
+        [
+          { color: 1, count: 10 },
+          { color: 2, count: 8 },
+          { color: 3, count: 3 },
+          { color: 5, count: 4 }
+        ],
+        [
+          { color: 1, count: 9 },
+          { color: 4, count: 5 },
+          { color: 3, count: 2 },
+          { color: 2, count: 4 }
+        ]
+      ]
+    },
+    {
+      id: "checker-tax",
+      name: "Checker Tax",
+      blurb: "Equal-looking tops. Unequal futures.",
+      slots: 2,
+      grid: [
+        "12121212",
+        "21212121",
+        "12121212",
+        "21212121",
+        "13131313",
+        "31313131",
+        "12121212",
+        "21212121"
+      ],
+      // 1:32 2:24 3:8
+      queues: [
+        [
+          { color: 1, count: 4 },
+          { color: 2, count: 4 },
+          { color: 1, count: 4 },
+          { color: 3, count: 2 },
+          { color: 2, count: 4 }
+        ],
+        [
+          { color: 2, count: 4 },
+          { color: 1, count: 4 },
+          { color: 2, count: 4 },
+          { color: 3, count: 2 },
+          { color: 1, count: 4 }
+        ],
+        [
+          { color: 1, count: 4 },
+          { color: 2, count: 4 },
+          { color: 3, count: 2 },
+          { color: 1, count: 4 },
+          { color: 2, count: 4 },
+          { color: 3, count: 2 },
+          { color: 1, count: 8 }
+        ]
+      ]
+    },
+    {
+      id: "ring-key",
+      name: "Ring Key",
+      blurb: "Rings unlock only in tempo.",
+      slots: 2,
       grid: [
         "00111100",
-        "01555510",
-        "15222251",
-        "15244251",
-        "15244251",
-        "15222251",
-        "01555510",
-        "00111100"
-      ]
-    },
-    {
-      id: "terrafab-mark",
-      name: "Terrafab Mark",
-      blurb: "The fab sigil. Full bay discipline.",
-      slots: 4,
-      grid: [
-        "66666666",
-        "61111116",
-        "61777716",
-        "61722716",
-        "61777716",
-        "61333316",
-        "61111116",
-        "65555556",
-        "66666666"
-      ]
-    },
-    {
-      id: "deep-stack",
-      name: "Deep Stack",
-      blurb: "Five colors. Three docks. Breathe.",
-      slots: 3,
-      grid: [
-        "11111111",
-        "12222221",
+        "01222210",
         "12333321",
         "12344321",
-        "12355321",
+        "12344321",
         "12333321",
-        "12222221",
-        "11111111"
+        "01222210",
+        "00111100"
+      ],
+      // 1:20 2:16 3:12 4:4
+      queues: [
+        [
+          { color: 1, count: 8 },
+          { color: 2, count: 6 },
+          { color: 3, count: 5 },
+          { color: 4, count: 2 }
+        ],
+        [
+          { color: 2, count: 5 },
+          { color: 1, count: 6 },
+          { color: 3, count: 4 },
+          { color: 4, count: 2 }
+        ],
+        [
+          { color: 1, count: 6 },
+          { color: 2, count: 5 },
+          { color: 3, count: 3 }
+        ]
       ]
     },
     {
-      id: "launch-window",
-      name: "Launch Window",
-      blurb: "Final exposure. Make it elegant.",
-      slots: 4,
+      id: "nested-tax",
+      name: "Nested Tax",
+      blurb: "Pay the outer tax in installments.",
+      slots: 2,
       grid: [
-        "00007000",
-        "00077700",
-        "00414140",
-        "04111114",
-        "04123214",
-        "04122214",
-        "00414140",
-        "00606060",
-        "06000006",
-        "50000005"
+        "1111111111",
+        "1222222221",
+        "1233333321",
+        "1234444321",
+        "1234554321",
+        "1234554321",
+        "1234444321",
+        "1233333321",
+        "1222222221",
+        "1111111111"
+      ],
+      // 1:36 2:28 3:20 4:12 5:4
+      queues: [
+        [
+          { color: 1, count: 10 },
+          { color: 2, count: 8 },
+          { color: 1, count: 8 },
+          { color: 3, count: 7 }
+        ],
+        [
+          { color: 2, count: 8 },
+          { color: 3, count: 6 },
+          { color: 4, count: 6 },
+          { color: 1, count: 8 }
+        ],
+        [
+          { color: 2, count: 6 },
+          { color: 4, count: 4 },
+          { color: 5, count: 4 },
+          { color: 3, count: 7 },
+          { color: 4, count: 2 },
+          { color: 1, count: 10 },
+          { color: 2, count: 6 }
+        ]
+      ]
+    },
+    {
+      id: "launch-cage",
+      name: "Launch Cage",
+      blurb: "Bolts before flame. Always.",
+      slots: 2,
+      grid: [
+        "6666666666",
+        "6000000006",
+        "6011111106",
+        "6012222106",
+        "6012322106",
+        "6012222106",
+        "6011111106",
+        "6007777006",
+        "6000700006",
+        "6666666666"
+      ],
+      // 1:18 2:11 3:1 6:36 7:5
+      queues: [
+        [
+          { color: 6, count: 12 },
+          { color: 1, count: 8 },
+          { color: 2, count: 5 },
+          { color: 6, count: 10 }
+        ],
+        [
+          { color: 1, count: 6 },
+          { color: 6, count: 8 },
+          { color: 7, count: 3 },
+          { color: 2, count: 4 }
+        ],
+        [
+          { color: 1, count: 4 },
+          { color: 3, count: 1 },
+          { color: 7, count: 2 },
+          { color: 2, count: 2 },
+          { color: 6, count: 6 }
+        ]
+      ]
+    },
+    {
+      id: "split-shell",
+      name: "Split Shell",
+      blurb: "Left or right — never both early.",
+      slots: 2,
+      grid: [
+        "1111002222",
+        "1001002002",
+        "1011002202",
+        "1011111112",
+        "1013333312",
+        "1013443312",
+        "1013333312",
+        "1111111112"
+      ],
+      // 1:35 2:14 3:13 4:2
+      queues: [
+        [
+          { color: 1, count: 12 },
+          { color: 3, count: 6 },
+          { color: 1, count: 10 },
+          { color: 4, count: 1 }
+        ],
+        [
+          { color: 2, count: 7 },
+          { color: 1, count: 8 },
+          { color: 2, count: 5 },
+          { color: 3, count: 5 }
+        ],
+        [
+          { color: 1, count: 5 },
+          { color: 2, count: 2 },
+          { color: 4, count: 1 },
+          { color: 3, count: 2 }
+        ]
+      ]
+    },
+    {
+      id: "warning-seal",
+      name: "Warning Seal",
+      blurb: "Red lid in fragments. Still lethal.",
+      slots: 2,
+      grid: [
+        "6666666666",
+        "6111111116",
+        "6177777716",
+        "6172222716",
+        "6172332716",
+        "6172222716",
+        "6177777716",
+        "6111111116",
+        "6555555556",
+        "6666666666"
+      ],
+      // 1:26 2:10 3:2 5:8 6:36 7:18
+      queues: [
+        [
+          { color: 6, count: 10 },
+          { color: 1, count: 10 },
+          { color: 6, count: 10 },
+          { color: 7, count: 8 }
+        ],
+        [
+          { color: 1, count: 8 },
+          { color: 2, count: 5 },
+          { color: 5, count: 4 },
+          { color: 7, count: 6 }
+        ],
+        [
+          { color: 6, count: 10 },
+          { color: 1, count: 8 },
+          { color: 2, count: 5 },
+          { color: 5, count: 4 },
+          { color: 3, count: 2 },
+          { color: 7, count: 4 },
+          { color: 6, count: 6 }
+        ]
+      ]
+    },
+    {
+      id: "final-mask",
+      name: "Final Mask",
+      blurb: "Final reticle. Three docks, no autopilot.",
+      slots: 3,
+      grid: [
+        "66666666666",
+        "61111111116",
+        "61777777716",
+        "61722222216",
+        "61723332216",
+        "61723432216",
+        "61723332216",
+        "61722222216",
+        "61777777716",
+        "61555555516",
+        "61111111116",
+        "66666666666"
+      ],
+      // 1:34 2:21 3:8 4:1 5:7 6:42 7:19
+      queues: [
+        [
+          { color: 6, count: 12 },
+          { color: 1, count: 10 },
+          { color: 7, count: 8 },
+          { color: 2, count: 8 }
+        ],
+        [
+          { color: 6, count: 10 },
+          { color: 1, count: 10 },
+          { color: 3, count: 5 },
+          { color: 5, count: 4 }
+        ],
+        [
+          { color: 2, count: 7 },
+          { color: 7, count: 6 },
+          { color: 4, count: 1 },
+          { color: 3, count: 3 }
+        ],
+        [
+          { color: 1, count: 8 },
+          { color: 6, count: 12 },
+          { color: 5, count: 3 },
+          { color: 2, count: 6 },
+          { color: 7, count: 5 },
+          { color: 6, count: 8 },
+          { color: 1, count: 6 }
+        ]
       ]
     }
   ];
@@ -241,16 +589,6 @@
     return rows.map((row) => row.split("").map((ch) => parseInt(ch, 10) || 0));
   }
 
-  function cloneGrid(grid) {
-    return grid.map((row) => row.slice());
-  }
-
-  function colorsInGrid(grid) {
-    const set = new Set();
-    grid.forEach((row) => row.forEach((c) => { if (c) set.add(c); }));
-    return [...set].sort((a, b) => a - b);
-  }
-
   function countColor(grid, color) {
     let n = 0;
     for (let y = 0; y < grid.length; y += 1) {
@@ -265,11 +603,15 @@
     return y >= 0 && y < grid.length && x >= 0 && x < grid[0].length;
   }
 
-  // A cell is exposed if it sits on the border OR touches an empty cell.
   function isExposed(grid, x, y) {
     if (!inBounds(grid, x, y) || !grid[y][x]) return false;
     if (x === 0 || y === 0 || x === grid[0].length - 1 || y === grid.length - 1) return true;
-    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    const dirs = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1]
+    ];
     for (const [dx, dy] of dirs) {
       const nx = x + dx;
       const ny = y + dy;
@@ -285,7 +627,6 @@
         if (grid[y][x] === color && isExposed(grid, x, y)) cells.push({ x, y });
       }
     }
-    // Eat from bottom/right first for a satisfying chomp direction
     cells.sort((a, b) => b.y - a.y || b.x - a.x);
     return cells;
   }
@@ -294,16 +635,17 @@
     return grid.every((row) => row.every((c) => c === 0));
   }
 
-  function createGame(root, hooks) {
+  function createGame(root) {
     const save = loadSave();
     let levelIndex = save.level;
     let grid = [];
-    let slots = []; // {color|null, stuck:boolean}
-    let remainingColors = []; // colors not yet docked
-    let status = "play"; // play | won | lost
+    let queues = [];
+    let docks = [];
+    let status = "play";
     let message = "";
     let eatTimer = 0;
-    let animCells = new Set(); // "x,y" briefly flashing
+    let animCells = new Set();
+    let stackSeq = 0;
 
     root.innerHTML = `
       <div class="th-shell">
@@ -318,7 +660,7 @@
 
         <section class="th-hud">
           <div><span>Level</span><strong data-th-level>1</strong></div>
-          <div><span>Docks</span><strong data-th-docks>3</strong></div>
+          <div><span>Docks</span><strong data-th-docks>2</strong></div>
           <div><span>Best clear</span><strong data-th-best>0</strong></div>
         </section>
 
@@ -333,8 +675,8 @@
         </section>
 
         <section class="th-tray-wrap">
-          <div class="th-section-label">Deploy color</div>
-          <div class="th-tray" data-th-tray></div>
+          <div class="th-section-label">Deploy queue tops</div>
+          <div class="th-queues" data-th-queues></div>
         </section>
 
         <section class="th-actions">
@@ -344,8 +686,8 @@
         </section>
 
         <p class="th-help">
-          Food Hunt energy, Terrafab skin: dock a color, drones nibble only <em>exposed</em> blocks.
-          Wrong order jams the docks. Clear the pixel art to win.
+          Harder Food Hunt rules: only the <em>top</em> of each queue can dock.
+          Stacks hold a bay until finished. Buried colors + full docks = jam.
         </p>
       </div>
     `;
@@ -359,11 +701,8 @@
       board: root.querySelector("[data-th-board]"),
       msg: root.querySelector("[data-th-msg]"),
       docksRow: root.querySelector("[data-th-docks-row]"),
-      tray: root.querySelector("[data-th-tray]"),
-      close: root.querySelector("[data-th-close]"),
-      restart: root.querySelector("[data-th-restart]"),
-      prev: root.querySelector("[data-th-prev]"),
-      next: root.querySelector("[data-th-next]")
+      queues: root.querySelector("[data-th-queues]"),
+      close: root.querySelector("[data-th-close]")
     };
 
     function setMessage(text) {
@@ -375,8 +714,14 @@
       levelIndex = Math.max(0, Math.min(LEVELS.length - 1, index));
       const level = LEVELS[levelIndex];
       grid = parseGrid(level.grid);
-      remainingColors = colorsInGrid(grid);
-      slots = Array.from({ length: level.slots }, () => ({ color: null }));
+      queues = level.queues.map((q) =>
+        q.map((s) => ({
+          id: "s" + (stackSeq += 1),
+          color: s.color,
+          count: s.count
+        }))
+      );
+      docks = Array.from({ length: level.slots }, () => null);
       status = "play";
       animCells = new Set();
       save.level = levelIndex;
@@ -385,51 +730,66 @@
       render();
     }
 
+    function freeDockIndex() {
+      return docks.findIndex((d) => !d);
+    }
+
+    function anyEatingPossible() {
+      return docks.some((d) => d && d.remaining > 0 && findExposed(grid, d.color).length > 0);
+    }
+
     function anyProgressPossible() {
-      // A docked color can eat if it has an exposed cell
-      for (const slot of slots) {
-        if (slot.color && findExposed(grid, slot.color).length) return true;
-      }
-      // Or we can still deploy a color into a free dock
-      if (remainingColors.length && slots.some((s) => !s.color)) return true;
+      if (status !== "play") return false;
+      if (anyEatingPossible()) return true;
+      if (freeDockIndex() !== -1 && queues.some((q) => q.length)) return true;
       return false;
+    }
+
+    function markWin() {
+      status = "won";
+      const cleared = levelIndex + 1;
+      if (cleared > save.best) {
+        save.best = cleared;
+        saveSave(save);
+      }
+      setMessage(
+        levelIndex < LEVELS.length - 1
+          ? "Wafer clear. Sequence holds."
+          : "Full reticle clear. Terrafab Hunt complete."
+      );
+      render();
     }
 
     function checkEnd() {
       if (boardCleared(grid)) {
-        status = "won";
-        const cleared = levelIndex + 1;
-        if (cleared > save.best) {
-          save.best = cleared;
-          saveSave(save);
-        }
-        if (levelIndex < LEVELS.length - 1) {
-          setMessage("Wafer clear. Dock the next pattern when ready.");
-        } else {
-          setMessage("Full stack clear. Terrafab Hunt complete.");
-        }
-        render();
+        docks = docks.map(() => null);
+        queues = queues.map(() => []);
+        markWin();
         return;
       }
       if (!anyProgressPossible()) {
         status = "lost";
-        setMessage("Dock jam. Buried colors, no free bay. Restart and resequence.");
+        setMessage("Dock jam. Tops waiting on buried silicon. Resequence.");
         render();
       }
     }
 
-    function deployColor(color) {
+    function deployTop(queueIndex) {
       if (status !== "play") return;
-      if (!remainingColors.includes(color)) return;
-      const free = slots.find((s) => !s.color);
-      if (!free) {
-        setMessage("All docks busy. Wait for a color to finish — or restart.");
+      const q = queues[queueIndex];
+      if (!q || !q.length) return;
+      const dockAt = freeDockIndex();
+      if (dockAt === -1) {
+        setMessage("All docks busy.");
         return;
       }
-      free.color = color;
-      remainingColors = remainingColors.filter((c) => c !== color);
-      setMessage(`Docked color. Drones hunting exposed blocks.`);
-      // Immediate nibble feels snappier
+      const stack = q.shift();
+      docks[dockAt] = {
+        id: stack.id,
+        color: stack.color,
+        remaining: stack.count
+      };
+      setMessage("Stack docked. Drones hunting exposed blocks.");
       nibbleOnce();
       render();
       checkEnd();
@@ -439,18 +799,17 @@
       if (status !== "play") return false;
       let ate = false;
       animCells = new Set();
-      for (const slot of slots) {
-        if (!slot.color) continue;
-        const exposed = findExposed(grid, slot.color);
+      for (let i = 0; i < docks.length; i += 1) {
+        const dock = docks[i];
+        if (!dock || dock.remaining <= 0) continue;
+        const exposed = findExposed(grid, dock.color);
         if (!exposed.length) continue;
         const cell = exposed[0];
         grid[cell.y][cell.x] = 0;
-        animCells.add(`${cell.x},${cell.y}`);
+        dock.remaining -= 1;
+        animCells.add(cell.x + "," + cell.y);
         ate = true;
-        // If color fully gone, free dock
-        if (countColor(grid, slot.color) === 0) {
-          slot.color = null;
-        }
+        if (dock.remaining <= 0) docks[i] = null;
       }
       return ate;
     }
@@ -460,68 +819,108 @@
       const w = grid[0].length;
       els.board.style.setProperty("--th-cols", String(w));
       els.board.style.setProperty("--th-rows", String(h));
-      const parts = [];
+      let html = "";
       for (let y = 0; y < h; y += 1) {
         for (let x = 0; x < w; x += 1) {
           const c = grid[y][x];
-          const exposed = c && isExposed(grid, x, y);
-          const flash = animCells.has(`${x},${y}`);
+          const flash = animCells.has(x + "," + y);
           if (!c) {
-            parts.push(`<span class="th-cell empty${flash ? " flash" : ""}"></span>`);
+            html += '<span class="th-cell empty' + (flash ? " flash" : "") + '"></span>';
           } else {
-            parts.push(
-              `<span class="th-cell${exposed ? " exposed" : " buried"}${flash ? " flash" : ""}" style="--c:${PALETTE[c] || "#888"}"></span>`
-            );
+            const exposed = isExposed(grid, x, y);
+            html +=
+              '<span class="th-cell' +
+              (exposed ? " exposed" : " buried") +
+              (flash ? " flash" : "") +
+              '" style="--c:' +
+              (PALETTE[c] || "#888") +
+              '"></span>';
           }
         }
       }
-      els.board.innerHTML = parts.join("");
+      els.board.innerHTML = html;
     }
 
     function renderDocks() {
-      els.docksRow.innerHTML = slots
-        .map((slot, i) => {
-          if (!slot.color) {
-            return `<div class="th-dock empty"><span>Dock ${i + 1}</span><em>open</em></div>`;
+      els.docksRow.innerHTML = docks
+        .map((dock, i) => {
+          if (!dock) {
+            return (
+              '<div class="th-dock empty"><span>Dock ' +
+              (i + 1) +
+              "</span><em>open</em></div>"
+            );
           }
-          const left = countColor(grid, slot.color);
-          const can = findExposed(grid, slot.color).length > 0;
-          return `<div class="th-dock ${can ? "active" : "stuck"}" style="--c:${PALETTE[slot.color]}">
-            <span>Dock ${i + 1}</span>
-            <strong></strong>
-            <em>${can ? "eating" : "blocked"} · ${left}</em>
-          </div>`;
+          const can = findExposed(grid, dock.color).length > 0;
+          return (
+            '<div class="th-dock ' +
+            (can ? "active" : "stuck") +
+            '" style="--c:' +
+            PALETTE[dock.color] +
+            '"><span>Dock ' +
+            (i + 1) +
+            "</span><strong></strong><em>" +
+            (can ? "eating" : "waiting") +
+            " · " +
+            dock.remaining +
+            "</em></div>"
+          );
         })
         .join("");
     }
 
-    function renderTray() {
+    function renderQueues() {
       if (status === "won") {
         const hasNext = levelIndex < LEVELS.length - 1;
-        els.tray.innerHTML = `
-          <button type="button" class="th-color-btn next" data-th-continue>
-            ${hasNext ? "Next level" : "Replay finale"}
-          </button>`;
+        els.queues.innerHTML =
+          '<button type="button" class="th-color-btn next" data-th-continue>' +
+          (hasNext ? "Next level" : "Replay finale") +
+          "</button>";
         return;
       }
       if (status === "lost") {
-        els.tray.innerHTML = `
-          <button type="button" class="th-color-btn next" data-th-restart-inline>Restart level</button>`;
+        els.queues.innerHTML =
+          '<button type="button" class="th-color-btn next" data-th-restart-inline>Restart level</button>';
         return;
       }
-      if (!remainingColors.length) {
-        els.tray.innerHTML = `<div class="th-tray-empty">All colors docked. Let the drones finish.</div>`;
-        return;
-      }
-      els.tray.innerHTML = remainingColors
-        .map((color) => {
-          const left = countColor(grid, color);
-          const exposed = findExposed(grid, color).length;
-          return `<button type="button" class="th-color-btn" data-th-deploy="${color}" style="--c:${PALETTE[color]}">
-            <i></i>
-            <span>${left} blocks</span>
-            <em>${exposed ? exposed + " exposed" : "buried"}</em>
-          </button>`;
+
+      els.queues.innerHTML = queues
+        .map((q, qi) => {
+          if (!q.length) {
+            return '<div class="th-queue empty"><div class="th-queue-label">Queue ' + (qi + 1) + '</div><div class="th-queue-empty">empty</div></div>';
+          }
+          const top = q[0];
+          const rest = q.slice(1, 5);
+          const more = q.length - 1 - rest.length;
+          const exposed = findExposed(grid, top.color).length;
+          return (
+            '<div class="th-queue">' +
+            '<div class="th-queue-label">Queue ' + (qi + 1) + " · " + q.length + "</div>" +
+            '<button type="button" class="th-color-btn top" data-th-deploy="' +
+            qi +
+            '" style="--c:' +
+            PALETTE[top.color] +
+            '"><i></i><span>' +
+            top.count +
+            " top</span><em>" +
+            (exposed ? exposed + " exposed" : "buried now") +
+            "</em></button>" +
+            '<div class="th-queue-rest">' +
+            rest
+              .map(
+                (s) =>
+                  '<span class="th-mini" style="--c:' +
+                  PALETTE[s.color] +
+                  '" title="' +
+                  s.count +
+                  '">' +
+                  s.count +
+                  "</span>"
+              )
+              .join("") +
+            (more > 0 ? '<span class="th-more">+' + more + "</span>" : "") +
+            "</div></div>"
+          );
         })
         .join("");
     }
@@ -530,14 +929,14 @@
       const level = LEVELS[levelIndex];
       els.title.textContent = level.name;
       els.blurb.textContent = level.blurb;
-      els.level.textContent = `${levelIndex + 1}/${LEVELS.length}`;
+      els.level.textContent = levelIndex + 1 + "/" + LEVELS.length;
       els.docks.textContent = String(level.slots);
       els.best.textContent = String(save.best);
       els.msg.textContent = message;
       root.dataset.status = status;
       renderBoard();
       renderDocks();
-      renderTray();
+      renderQueues();
     }
 
     function onClick(event) {
@@ -545,18 +944,14 @@
         "[data-th-deploy], [data-th-continue], [data-th-restart], [data-th-restart-inline], [data-th-prev], [data-th-next], [data-th-close]"
       );
       if (!t) return;
-      if (t.matches("[data-th-deploy]")) {
-        deployColor(parseInt(t.getAttribute("data-th-deploy"), 10));
-      } else if (t.matches("[data-th-continue]")) {
+      if (t.matches("[data-th-deploy]")) deployTop(parseInt(t.getAttribute("data-th-deploy"), 10));
+      else if (t.matches("[data-th-continue]")) {
         if (levelIndex < LEVELS.length - 1) startLevel(levelIndex + 1);
         else startLevel(levelIndex);
       } else if (t.matches("[data-th-restart]") || t.matches("[data-th-restart-inline]")) {
         startLevel(levelIndex);
-      } else if (t.matches("[data-th-prev]")) {
-        startLevel(levelIndex - 1);
-      } else if (t.matches("[data-th-next]")) {
-        startLevel(levelIndex + 1);
-      }
+      } else if (t.matches("[data-th-prev]")) startLevel(levelIndex - 1);
+      else if (t.matches("[data-th-next]")) startLevel(levelIndex + 1);
     }
 
     function tick() {
@@ -565,19 +960,21 @@
         if (ate) {
           render();
           checkEnd();
-        } else if (slots.some((s) => s.color) && remainingColors.length === 0) {
-          // waiting / maybe stuck
+        } else {
           checkEnd();
-          renderDocks();
+          if (status === "play") {
+            renderDocks();
+            renderQueues();
+          }
         }
       }
-      eatTimer = window.setTimeout(tick, 220);
+      eatTimer = window.setTimeout(tick, 170);
     }
 
     function start() {
       startLevel(levelIndex);
       root.addEventListener("click", onClick);
-      eatTimer = window.setTimeout(tick, 220);
+      eatTimer = window.setTimeout(tick, 170);
     }
 
     function stop() {
@@ -588,11 +985,7 @@
     }
 
     start();
-
-    return {
-      stop,
-      closeButton: els.close
-    };
+    return { stop, closeButton: els.close };
   }
 
   global.TerrafabHunt = {
