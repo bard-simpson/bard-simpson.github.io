@@ -1,4 +1,4 @@
-/* Terrafab Idle — chip fab to orbital compute clicker */
+/* Terafab Idle — chip fab to orbital compute clicker */
 (function (global) {
   "use strict";
 
@@ -100,7 +100,10 @@
 
   function loadState() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      // Keep legacy misspelled key working after Terafab rename.
+      const raw =
+        localStorage.getItem(SAVE_KEY) ||
+        localStorage.getItem("bard-simpson-terrafab-v1");
       if (!raw) return defaultState();
       const data = JSON.parse(raw);
       const base = defaultState();
@@ -178,7 +181,7 @@
       <div class="tf-shell">
         <header class="tf-top">
           <div>
-            <p class="tf-kicker">Terrafab Idle</p>
+            <p class="tf-kicker">Terafab Idle</p>
             <h2>From cleanroom to constellation</h2>
           </div>
           <button type="button" class="tf-close" data-tf-close aria-label="Close game">✕</button>
@@ -201,20 +204,74 @@
 
         <section class="tf-stage">
           <div class="tf-sky" aria-hidden="true">
+            <div class="tf-aurora"></div>
             <div class="tf-stars"></div>
-            <div class="tf-earth"></div>
-            <div class="tf-sat"></div>
-            <div class="tf-rocket" data-tf-rocket></div>
+            <div class="tf-stars tf-stars-2"></div>
+            <div class="tf-earth">
+              <span class="tf-earth-glow"></span>
+              <span class="tf-continent c1"></span>
+              <span class="tf-continent c2"></span>
+              <span class="tf-continent c3"></span>
+            </div>
+            <div class="tf-fab">
+              <span class="tf-fab-body"></span>
+              <span class="tf-fab-roof"></span>
+              <span class="tf-fab-window w1"></span>
+              <span class="tf-fab-window w2"></span>
+              <span class="tf-fab-window w3"></span>
+              <span class="tf-fab-stack"></span>
+            </div>
+            <div class="tf-pad-base"></div>
+            <div class="tf-tower"></div>
+            <div class="tf-starlink" aria-hidden="true">
+              <div class="tf-link-path p1"></div>
+              <div class="tf-link-path p2"></div>
+              <div class="tf-sat-train t1">
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+              </div>
+              <div class="tf-sat-train t2">
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+              </div>
+              <div class="tf-sat-train t3">
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+                <span class="tf-sat"></span>
+              </div>
+            </div>
+            <div class="tf-rocket" data-tf-rocket>
+              <span class="tf-rocket-fin left"></span>
+              <span class="tf-rocket-fin right"></span>
+              <span class="tf-rocket-body"></span>
+              <span class="tf-rocket-nose"></span>
+              <span class="tf-rocket-window"></span>
+              <span class="tf-rocket-flame"></span>
+              <span class="tf-rocket-smoke"></span>
+            </div>
+            <div class="tf-beam" data-tf-beam></div>
+            <div class="tf-scanlines"></div>
           </div>
 
           <button type="button" class="tf-wafer" data-tf-click aria-label="Expose wafer">
+            <span class="tf-wafer-glow"></span>
+            <span class="tf-wafer-notch"></span>
             <span class="tf-wafer-ring"></span>
+            <span class="tf-wafer-ring outer"></span>
             <span class="tf-wafer-core">
-              <span class="tf-die"></span>
-              <span class="tf-die"></span>
-              <span class="tf-die"></span>
-              <span class="tf-die"></span>
+              <span class="tf-die"></span><span class="tf-die"></span><span class="tf-die"></span>
+              <span class="tf-die"></span><span class="tf-die on"></span><span class="tf-die"></span>
+              <span class="tf-die"></span><span class="tf-die"></span><span class="tf-die"></span>
             </span>
+            <span class="tf-expose-flash"></span>
             <span class="tf-wafer-label">Expose</span>
           </button>
           <p class="tf-log" data-tf-log></p>
@@ -369,9 +426,14 @@
       const y = (event.clientY || rect.top + rect.height / 2) - stage.top;
       spawnFloat(power, x, y);
       els.clickBtn.classList.remove("pulse");
-      // force reflow
       void els.clickBtn.offsetWidth;
       els.clickBtn.classList.add("pulse");
+      const beam = root.querySelector("[data-tf-beam]");
+      if (beam) {
+        beam.classList.remove("fire");
+        void beam.offsetWidth;
+        beam.classList.add("fire");
+      }
       if (Math.random() < 0.08) {
         setLog("Exposure clean. Next reticle, please.");
       }
@@ -431,7 +493,7 @@
     }
 
     function resetSave() {
-      const ok = window.confirm("Reset Terrafab Idle save on this device?");
+      const ok = window.confirm("Reset Terafab Idle save on this device?");
       if (!ok) return;
       Object.assign(state, defaultState());
       setLog("Save cleared. Fresh cleanroom.");
@@ -498,5 +560,5 @@
     };
   }
 
-  global.TerrafabIdle = { createGame };
+  global.TerafabIdle = { createGame };
 })(window);

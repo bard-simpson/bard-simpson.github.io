@@ -1,10 +1,11 @@
-/* Terrafab Hunt — harder Food Hunt-inspired wafer clear puzzle */
+/* Terafab Hunt — harder Food Hunt-inspired wafer clear puzzle */
 (function (global) {
   "use strict";
 
   // v3 save: queue tops + tighter docks
-  const SAVE_KEY = "bard-simpson-terrafab-hunt-v3";
-
+  const SAVE_KEY = "bard-simpson-terafab-hunt-v3";
+  const SAVE_KEY_LEGACY = "bard-simpson-terrafab-hunt-v3";
+  
   const PALETTE = {
     1: "#7aa2ff",
     2: "#f0b37a",
@@ -569,7 +570,7 @@
 
   function loadSave() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const raw = localStorage.getItem(SAVE_KEY) || localStorage.getItem(SAVE_KEY_LEGACY);
       if (!raw) return defaultSave();
       const data = JSON.parse(raw);
       return {
@@ -651,7 +652,7 @@
       <div class="th-shell">
         <header class="th-top">
           <div>
-            <p class="th-kicker">Terrafab Hunt</p>
+            <p class="th-kicker">Terafab Hunt</p>
             <h2 data-th-title>Level</h2>
             <p class="th-blurb" data-th-blurb></p>
           </div>
@@ -755,7 +756,7 @@
       setMessage(
         levelIndex < LEVELS.length - 1
           ? "Wafer clear. Sequence holds."
-          : "Full reticle clear. Terrafab Hunt complete."
+          : "Full reticle clear. Terafab Hunt complete."
       );
       render();
     }
@@ -988,7 +989,7 @@
     return { stop, closeButton: els.close };
   }
 
-  global.TerrafabHunt = {
+  global.TerafabHunt = {
     createGame,
     levelCount: LEVELS.length
   };
