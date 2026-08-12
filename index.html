@@ -63,7 +63,8 @@
     body.menu-open,
     body.panel-open,
     body.game-open,
-    body.hunt-open {
+    body.hunt-open,
+    body.dash-open {
       overflow: hidden;
     }
 
@@ -1695,6 +1696,264 @@
       .th-hud { grid-template-columns: 1fr; }
     }
 
+
+    /* ===== Dashboard ===== */
+    .dash-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 52;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(111, 143, 122, 0.14), transparent 34%),
+        radial-gradient(circle at 85% 0%, rgba(122, 162, 255, 0.12), transparent 28%),
+        #f7f4ef;
+      color: var(--ink);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(1rem);
+      transition:
+        opacity 0.32s ease,
+        transform 0.42s var(--ease),
+        visibility 0.32s ease;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .dash-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .db-shell {
+      width: min(960px, 100%);
+      margin: 0 auto;
+      padding: 1rem 1rem 2.5rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .db-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 0.35rem 0 0.55rem;
+      background: linear-gradient(to bottom, rgba(247,244,239,0.98), rgba(247,244,239,0.88) 70%, transparent);
+    }
+
+    .db-kicker {
+      margin: 0 0 0.15rem;
+      color: var(--accent);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+    }
+
+    .db-top h2 {
+      margin: 0;
+      font-weight: 300;
+      font-size: clamp(1.45rem, 4vw, 2rem);
+    }
+
+    .db-sub {
+      margin: 0.3rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .db-close {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.55);
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .db-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+    }
+
+    .db-stat {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: 1.1rem;
+      padding: 0.95rem 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .db-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .db-stat strong {
+      display: block;
+      font-size: 1.55rem;
+      font-weight: 300;
+      line-height: 1.1;
+    }
+
+    .db-stat em {
+      display: block;
+      margin-top: 0.35rem;
+      font-style: normal;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .db-card {
+      border: 1px solid var(--line);
+      background: rgba(255,253,249,0.92);
+      border-radius: 1.15rem;
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 0.75rem;
+      align-content: start;
+    }
+
+    .db-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .db-card-head h3 {
+      margin: 0;
+      font-weight: 300;
+      font-size: 1.15rem;
+    }
+
+    .db-link,
+    .db-actions button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.45rem 0.85rem;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .db-link:hover,
+    .db-actions button:hover,
+    .db-link:focus-visible,
+    .db-actions button:focus-visible {
+      border-color: rgba(111, 143, 122, 0.55);
+      background: var(--accent-soft);
+      outline: none;
+    }
+
+    .db-todo-preview {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .db-todo-preview li {
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.8rem;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      line-height: 1.35;
+    }
+
+    .db-todo-preview li.empty {
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .db-kv {
+      margin: 0;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .db-kv > div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .db-kv > div:last-child { border-bottom: 0; }
+
+    .db-kv dt {
+      color: var(--muted);
+    }
+
+    .db-kv dd {
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .db-progress-bar {
+      height: 0.7rem;
+      border-radius: 999px;
+      background: rgba(61,58,53,0.08);
+      overflow: hidden;
+      margin-bottom: 0.7rem;
+    }
+
+    .db-progress-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #8fb59a);
+      border-radius: inherit;
+      min-width: 0;
+    }
+
+    .db-progress p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .db-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .db-actions button {
+      padding: 0.8rem 0.9rem;
+    }
+
+    .db-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 720px) {
+      .db-stats,
+      .db-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       h1 .char {
         opacity: 1;
@@ -1709,6 +1968,7 @@
       .panel,
       .game-overlay,
       .hunt-overlay,
+      .dash-overlay,
       .tf-stars,
       .tf-sat,
       .tf-sat-train,
@@ -1742,6 +2002,10 @@
     <p class="hint">Tap the name</p>
 
     <div class="menu" id="mainMenu" role="menu" hidden>
+      <button type="button" role="menuitem" id="openDash">
+        <span class="label">Dashboard</span>
+        <span class="meta">Home</span>
+      </button>
       <button type="button" role="menuitem" id="openTodo">
         <span class="label">Todo list</span>
         <span class="meta">Open</span>
@@ -1807,13 +2071,24 @@
     hidden
   ></div>
 
+  <div
+    class="dash-overlay"
+    id="dashOverlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Dashboard"
+    hidden
+  ></div>
+
   <script src="assets/js/terafab.js"></script>
   <script src="assets/js/terafab-hunt.js"></script>
+  <script src="assets/js/dashboard.js"></script>
   <script>
     (function () {
       const storageKey = "bard-simpson-todos";
       const nameButton = document.getElementById("nameButton");
       const mainMenu = document.getElementById("mainMenu");
+      const openDash = document.getElementById("openDash");
       const openTodo = document.getElementById("openTodo");
       const openGame = document.getElementById("openGame");
       const openHunt = document.getElementById("openHunt");
@@ -1825,10 +2100,12 @@
       const todoList = document.getElementById("todoList");
       const gameOverlay = document.getElementById("gameOverlay");
       const huntOverlay = document.getElementById("huntOverlay");
+      const dashOverlay = document.getElementById("dashOverlay");
 
       let todos = loadTodos();
       let gameHandle = null;
       let huntHandle = null;
+      let dashHandle = null;
 
       function loadTodos() {
         try {
@@ -1918,6 +2195,7 @@
 
       function openTodoPanel() {
         closeMenu();
+        if (dashOverlay.classList.contains("open")) closeDashPanel();
         todoPanel.hidden = false;
         backdrop.hidden = false;
         requestAnimationFrame(() => {
@@ -1945,6 +2223,7 @@
         closeMenu();
         if (todoPanel.classList.contains("open")) closeTodoPanel();
         if (huntOverlay.classList.contains("open")) closeHuntPanel();
+        if (dashOverlay.classList.contains("open")) closeDashPanel();
         gameOverlay.hidden = false;
         document.body.classList.add("game-open");
         requestAnimationFrame(() => {
@@ -1980,6 +2259,7 @@
         closeMenu();
         if (todoPanel.classList.contains("open")) closeTodoPanel();
         if (gameOverlay.classList.contains("open")) closeGamePanel();
+        if (dashOverlay.classList.contains("open")) closeDashPanel();
         huntOverlay.hidden = false;
         document.body.classList.add("hunt-open");
         requestAnimationFrame(() => {
@@ -2011,9 +2291,64 @@
         nameButton.focus();
       }
 
+      function openDashPanel() {
+        closeMenu();
+        if (todoPanel.classList.contains("open")) closeTodoPanel();
+        if (gameOverlay.classList.contains("open")) closeGamePanel();
+        if (huntOverlay.classList.contains("open")) closeHuntPanel();
+        dashOverlay.hidden = false;
+        document.body.classList.add("dash-open");
+        requestAnimationFrame(() => {
+          dashOverlay.classList.add("open");
+        });
+        if (dashHandle) {
+          dashHandle.stop();
+          dashHandle = null;
+        }
+        dashHandle = window.BardDashboard.createDashboard(dashOverlay, {
+          onClose: closeDashPanel,
+          onOpenTodo: function () {
+            closeDashPanel();
+            window.setTimeout(openTodoPanel, 220);
+          },
+          onOpenIdle: function () {
+            closeDashPanel();
+            window.setTimeout(openGamePanel, 220);
+          },
+          onOpenHunt: function () {
+            closeDashPanel();
+            window.setTimeout(openHuntPanel, 220);
+          }
+        });
+        if (dashHandle && dashHandle.closeButton) {
+          dashHandle.closeButton.addEventListener("click", closeDashPanel, { once: true });
+        }
+      }
+
+      function closeDashPanel() {
+        if (dashHandle) {
+          dashHandle.stop();
+          dashHandle = null;
+        }
+        dashOverlay.classList.remove("open");
+        document.body.classList.remove("dash-open");
+        window.setTimeout(() => {
+          if (!dashOverlay.classList.contains("open")) {
+            dashOverlay.hidden = true;
+            dashOverlay.innerHTML = "";
+          }
+        }, 420);
+        nameButton.focus();
+      }
+
       nameButton.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleMenu();
+      });
+
+      openDash.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDashPanel();
       });
 
       openTodo.addEventListener("click", (event) => {
@@ -2042,6 +2377,10 @@
 
       document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
+        if (dashOverlay.classList.contains("open")) {
+          closeDashPanel();
+          return;
+        }
         if (huntOverlay.classList.contains("open")) {
           closeHuntPanel();
           return;
