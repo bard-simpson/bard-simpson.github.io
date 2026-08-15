@@ -2240,7 +2240,13 @@
 
     .name-wrap {
       position: relative;
-      transform: translate3d(var(--ox, 0px), var(--oy, 0px), 0) scale(var(--sc, 1));
+      perspective: 600px;
+      transform:
+        translate3d(var(--ox, 0px), var(--oy, 0px), 0)
+        rotateX(var(--rx, 0deg))
+        rotateY(var(--ry, 0deg))
+        scale(var(--sc, 1));
+      transform-style: preserve-3d;
       transition: transform 0.08s linear;
       filter: drop-shadow(0 0 calc(28px * var(--glow, 0.3)) rgba(122,162,255,0.35));
     }
@@ -2473,6 +2479,7 @@
     <div class="hud-scene" id="sceneLabel">Awaken</div>
     <div class="hud-actions">
       <button type="button" class="ghost-btn" id="soundBtn" aria-pressed="false">Sound off</button>
+      <button type="button" class="ghost-btn" id="motionBtn" aria-pressed="false" hidden>Motion off</button>
       <button type="button" class="ghost-btn" id="openDashHud" data-magnetic>Dashboard</button>
     </div>
   </header>
@@ -2522,7 +2529,7 @@
     <section class="chapter" id="sense">
       <p class="tag">Sense</p>
       <h2>Every cursor path bends the field</h2>
-      <p>Particles, neural nodes, and a soft WebGL atmosphere track you in real time. Click anywhere and the organism answers with light, physics, and optional sound.</p>
+      <p>Particles, neural nodes, and a soft WebGL atmosphere track you in real time. On phones, enable Motion and tilt the device — the field leans with you. Click anywhere and it answers with light, physics, and optional sound.</p>
     </section>
 
     <section class="chapter right" id="play">
@@ -2977,6 +2984,7 @@
           progress: document.getElementById("progress"),
           sceneLabel: document.getElementById("sceneLabel"),
           soundBtn: document.getElementById("soundBtn"),
+          motionBtn: document.getElementById("motionBtn"),
           nameRoot: document.getElementById("nameRoot")
         });
       }

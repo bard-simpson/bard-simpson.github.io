@@ -22,6 +22,7 @@
     const progressEl = options.progress;
     const sceneLabel = options.sceneLabel;
     const soundBtn = options.soundBtn;
+    const motionBtn = options.motionBtn;
     const nameRoot = options.nameRoot;
 
     const state = {
@@ -40,6 +41,10 @@
       scene: 0,
       pulse: 0,
       audio: false,
+      motion: false,
+      tiltX: 0, // -1..1 left/right (gamma)
+      tiltY: 0, // -1..1 front/back (beta)
+      lastPointer: 0,
       running: true,
       particles: [],
       ripples: [],
@@ -341,6 +346,7 @@
       const y = e.clientY / state.h;
       state.tx = clamp(x, 0, 1);
       state.ty = clamp(y, 0, 1);
+      state.lastPointer = performance.now();
     }
 
     function onDown(e) {
@@ -353,6 +359,74 @@
         void nameRoot.offsetWidth;
         nameRoot.classList.add("kick");
       }
+    }
+
+    function onOrientation(e) {
+      if (!state.motion || REDUCED) return;
+      // beta: -180..180 front/back, gamma: -90..90 left/right
+      const beta = typeof e.beta === "number" ? e.beta : 0;
+      const gamma = typeof e.gamma === "number" ? e.gamma : 0;
+      // Normalize around upright phone (~beta 45-70). Map modest tilt range.
+      const tx = clamp(gamma / 28, -1, 1);
+      const ty = clamp((beta - 45) / 35, -1, 1);
+      state.tiltX = lerp(state.tiltX, tx, 0.18);
+      state.tiltY = lerp(state.tiltY, ty, 0.18);
+
+      // If user hasn't touched recently, let tilt drive the field target.
+      const idlePointer = performance.now() - state.lastPointer > 900;
+      if (idlePointer) {
+        state.tx = clamp(0.5 + state.tiltX * 0.42, 0.05, 0.95);
+        state.ty = clamp(0.5 + state.tiltY * 0.36, 0.08, 0.92);
+      }
+    }
+
+    function updateMotionButton() {
+      if (!motionBtn) return;
+      const supported = "DeviceOrientationEvent" in window;
+      if (!supported) {
+        motionBtn.hidden = true;
+        return;
+      }
+      motionBtn.hidden = false;
+      motionBtn.setAttribute("aria-pressed", state.motion ? "true" : "false");
+      motionBtn.textContent = state.motion ? "Motion on" : "Motion off";
+    }
+
+    async function enableMotion() {
+      if (REDUCED) return false;
+      if (!("DeviceOrientationEvent" in window)) return false;
+      try {
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+          const res = await DeviceOrientationEvent.requestPermission();
+          if (res !== "granted") return false;
+        }
+        if (!state.motion) {
+          window.addEventListener("deviceorientation", onOrientation, { passive: true });
+        }
+        state.motion = true;
+        updateMotionButton();
+        blip(190, 0.1);
+        return true;
+      } catch (err) {
+        console.warn("Motion permission failed", err);
+        state.motion = false;
+        updateMotionButton();
+        return false;
+      }
+    }
+
+    function disableMotion() {
+      if (!state.motion) return;
+      window.removeEventListener("deviceorientation", onOrientation);
+      state.motion = false;
+      state.tiltX = 0;
+      state.tiltY = 0;
+      updateMotionButton();
+    }
+
+    async function toggleMotion() {
+      if (state.motion) disableMotion();
+      else await enableMotion();
     }
 
     // custom cursor
@@ -389,8 +463,10 @@
       for (const n of state.nodes) {
         n.a += n.speed * dt * (0.4 + state.energy);
         const breathe = 1 + Math.sin(state.t * 0.9 + n.a) * 0.08 + state.energy * 0.12;
-        n.x = 0.5 + Math.cos(n.a) * n.r * breathe + (state.mx - 0.5) * 0.08;
-        n.y = 0.5 + Math.sin(n.a * 1.1) * n.r * 0.72 * breathe + (state.my - 0.5) * 0.08;
+        const tiltPullX = state.motion ? state.tiltX * 0.05 : 0;
+        const tiltPullY = state.motion ? state.tiltY * 0.04 : 0;
+        n.x = 0.5 + Math.cos(n.a) * n.r * breathe + (state.mx - 0.5) * 0.08 + tiltPullX;
+        n.y = 0.5 + Math.sin(n.a * 1.1) * n.r * 0.72 * breathe + (state.my - 0.5) * 0.08 + tiltPullY;
       }
 
       // particles physics
@@ -421,8 +497,12 @@
             fy += (ry / rd) * 0.02 * r.life * r.force;
           }
         }
-        // scroll wind
+        // scroll wind + device tilt gravity
         fy += (state.scroll - 0.5) * 0.002;
+        if (state.motion) {
+          fx += state.tiltX * 0.02;
+          fy += state.tiltY * 0.018;
+        }
         p.vx = (p.vx + fx) * 0.92;
         p.vy = (p.vy + fy) * 0.92;
         p.x += p.vx * dt * 60 * 0.016;
@@ -442,13 +522,18 @@
 
       // spatial name reaction
       if (nameRoot) {
-        const px = (state.mx - 0.5) * 24;
-        const py = (state.my - 0.5) * 16;
+        const px = (state.mx - 0.5) * 24 + state.tiltX * 10;
+        const py = (state.my - 0.5) * 16 + state.tiltY * 8;
         const sc = 1 + state.energy * 0.04 + state.pulse * 0.03;
         nameRoot.style.setProperty("--ox", px.toFixed(2) + "px");
         nameRoot.style.setProperty("--oy", py.toFixed(2) + "px");
         nameRoot.style.setProperty("--sc", sc.toFixed(3));
         nameRoot.style.setProperty("--glow", (0.25 + state.energy * 0.6).toFixed(3));
+        // subtle 3D tilt from device / cursor
+        const rx = clamp((-state.tiltY * 8) + (0.5 - state.my) * 6, -10, 10);
+        const ry = clamp((state.tiltX * 10) + (state.mx - 0.5) * 8, -12, 12);
+        nameRoot.style.setProperty("--rx", rx.toFixed(2) + "deg");
+        nameRoot.style.setProperty("--ry", ry.toFixed(2) + "deg");
       }
 
       updateCursor();
@@ -615,6 +700,18 @@
       soundBtn.addEventListener("click", () => setAudio(!state.audio));
     }
 
+    updateMotionButton();
+    if (motionBtn) {
+      motionBtn.addEventListener("click", () => {
+        toggleMotion();
+      });
+      // On non-iOS mobile, we can enable eagerly after first gesture.
+      if (!FINE && !REDUCED && typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission !== "function") {
+        // still require a tap via the button for intentionality
+      }
+    }
+
     // letter spatialize
     if (nameRoot && !REDUCED) {
       nameRoot.querySelectorAll(".char").forEach((ch, i) => {
@@ -631,12 +728,15 @@
         blip(200, 0.1);
       },
       setAudio,
+      enableMotion,
+      disableMotion,
       destroy() {
         state.running = false;
         window.removeEventListener("resize", resize);
         window.removeEventListener("scroll", updateScroll);
         window.removeEventListener("pointermove", onPointer);
         window.removeEventListener("pointerdown", onDown);
+        window.removeEventListener("deviceorientation", onOrientation);
         if (audioCtx) audioCtx.close();
       }
     };
