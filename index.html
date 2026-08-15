@@ -4,13 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bard Simpson</title>
+  <meta name="description" content="Bard Simpson — a living digital organism. Cinematic browser-native experience with portals to dashboard, todos, and Terafab.">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#fcfcfd">
+  <meta name="theme-color" content="#070b12">
   <style>
+
     @font-face {
       font-family: "Fredoka";
       src:
@@ -1982,46 +1984,495 @@
         transition: none !important;
       }
     }
+  
+
+    /* ===== Living organism shell ===== */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body.organism {
+      display: block;
+      min-height: 100vh;
+      background: #070b12;
+      color: #e8eef8;
+      overflow-x: hidden;
+      overflow-y: auto;
+      cursor: none;
+    }
+
+    body.organism.menu-open,
+    body.organism.panel-open,
+    body.organism.game-open,
+    body.organism.hunt-open,
+    body.organism.dash-open {
+      overflow: hidden;
+    }
+
+    @media (pointer: coarse) {
+      body.organism { cursor: auto; }
+      .cursor, .cursor-ring { display: none !important; }
+    }
+
+    .fx-gl,
+    .fx-2d {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .fx-gl { z-index: 0; }
+    .fx-2d { z-index: 1; }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.45) 100%),
+        linear-gradient(to bottom, rgba(7,11,18,0.15), transparent 20%, transparent 80%, rgba(7,11,18,0.55));
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      transform-origin: left center;
+      transform: scaleX(0);
+      background: linear-gradient(90deg, #7dcea0, #7aa2ff, #f0b37a);
+      z-index: 80;
+      box-shadow: 0 0 16px rgba(122,162,255,0.45);
+    }
+
+    .hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.1rem;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .hud > * { pointer-events: auto; }
+
+    .hud-brand {
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(232,238,248,0.7);
+    }
+
+    .hud-scene {
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #9ec0ff;
+    }
+
+    .hud-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .ghost-btn {
+      border: 1px solid rgba(232,238,248,0.16);
+      background: rgba(255,255,255,0.03);
+      color: #e8eef8;
+      border-radius: 999px;
+      padding: 0.45rem 0.8rem;
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
+    .ghost-btn[aria-pressed="true"] {
+      border-color: rgba(125,206,160,0.5);
+      color: #7dcea0;
+    }
+
+    .cursor,
+    .cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 90;
+      border-radius: 50%;
+      transform: translate(-100px,-100px);
+      will-change: transform;
+    }
+
+    .cursor {
+      width: 8px;
+      height: 8px;
+      margin: -4px 0 0 -4px;
+      background: #e8eef8;
+      box-shadow: 0 0 18px rgba(158,192,255,0.8);
+    }
+
+    .cursor-ring {
+      width: 42px;
+      height: 42px;
+      margin: -21px 0 0 -21px;
+      border: 1px solid rgba(158,192,255,0.55);
+      box-shadow: 0 0 30px rgba(122,162,255,0.15);
+      transition: width 0.2s ease, height 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
+      opacity: 0.85;
+    }
+
+    .story {
+      position: relative;
+      z-index: 5;
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 0 1.25rem 30vh;
+    }
+
+    .story-hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 18vh 0 12vh;
+    }
+
+    .name-wrap {
+      position: relative;
+      transform: translate3d(var(--ox, 0px), var(--oy, 0px), 0) scale(var(--sc, 1));
+      transition: transform 0.08s linear;
+      filter: drop-shadow(0 0 calc(28px * var(--glow, 0.3)) rgba(122,162,255,0.35));
+    }
+
+    .name-wrap.kick {
+      animation: name-kick 0.45s cubic-bezier(0.22,1.2,0.36,1);
+    }
+
+    @keyframes name-kick {
+      0% { filter: drop-shadow(0 0 8px rgba(122,162,255,0.2)); }
+      40% { filter: drop-shadow(0 0 40px rgba(125,206,160,0.55)); }
+      100% { filter: drop-shadow(0 0 calc(28px * var(--glow, 0.3)) rgba(122,162,255,0.35)); }
+    }
+
+    .name-button {
+      margin: 0;
+      padding: 0.4rem 0.6rem;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      border-radius: 1rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.organism .name-button:focus-visible {
+      outline: 2px solid #7aa2ff;
+      outline-offset: 8px;
+    }
+
+    body.organism h1 {
+      margin: 0;
+      font-size: clamp(3rem, 12vw, 7rem);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      line-height: 0.95;
+    }
+
+    body.organism h1 .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translate3d(0, 0.7em, 0) rotate(6deg);
+      animation: char-in 1.1s cubic-bezier(0.22,1,0.36,1) forwards;
+      animation-delay: calc(var(--i) * 0.07s + 0.15s);
+      text-shadow: 0 0 30px rgba(158,192,255,0.25);
+    }
+
+    body.organism h1 .space { width: 0.35em; }
+
+    @keyframes char-in {
+      to {
+        opacity: 1;
+        transform: translate3d(0,0,0) rotate(0deg);
+      }
+    }
+
+    .hero-sub {
+      margin: 1.4rem auto 0;
+      max-width: 28rem;
+      color: rgba(232,238,248,0.62);
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      line-height: 1.55;
+    }
+
+    .scroll-hint {
+      margin-top: 2.5rem;
+      color: rgba(232,238,248,0.4);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      animation: bob 2.2s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%,100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(8px); opacity: 0.85; }
+    }
+
+    .chapter {
+      min-height: 85vh;
+      display: grid;
+      align-content: center;
+      gap: 1rem;
+      padding: 10vh 0;
+      max-width: 40rem;
+    }
+
+    .chapter.right { margin-left: auto; text-align: right; }
+
+    .chapter .tag {
+      margin: 0;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7dcea0;
+      font-size: 0.78rem;
+    }
+
+    .chapter h2 {
+      margin: 0;
+      font-weight: 300;
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 0.03em;
+    }
+
+    .chapter p {
+      margin: 0;
+      color: rgba(232,238,248,0.66);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .portal-grid {
+      min-height: 90vh;
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      align-content: center;
+      padding: 8vh 0 18vh;
+    }
+
+    .portal {
+      border: 1px solid rgba(232,238,248,0.12);
+      background: rgba(255,255,255,0.03);
+      border-radius: 1.35rem;
+      padding: 1.25rem 1.2rem;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+      backdrop-filter: blur(10px);
+      min-height: 8.5rem;
+      display: grid;
+      gap: 0.45rem;
+      align-content: center;
+    }
+
+    .portal:hover,
+    .portal:focus-visible {
+      border-color: rgba(122,162,255,0.45);
+      background: rgba(122,162,255,0.08);
+      box-shadow: 0 18px 60px rgba(122,162,255,0.12);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .portal strong {
+      font-weight: 300;
+      font-size: 1.35rem;
+    }
+
+    .portal span {
+      color: rgba(232,238,248,0.58);
+      line-height: 1.45;
+    }
+
+    .portal em {
+      font-style: normal;
+      color: #9ec0ff;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+    }
+
+    body.organism .menu {
+      background: rgba(12,18,30,0.92);
+      border-color: rgba(232,238,248,0.12);
+      color: #e8eef8;
+    }
+
+    body.organism .menu .meta { color: rgba(232,238,248,0.5); }
+    body.organism .menu button:hover,
+    body.organism .menu button:focus-visible {
+      background: rgba(122,162,255,0.12);
+    }
+
+    body.organism .hint {
+      color: rgba(232,238,248,0.45);
+      animation: none;
+      opacity: 1;
+      margin-top: 1rem;
+    }
+
+    .a11y {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    @media (max-width: 720px) {
+      .portal-grid { grid-template-columns: 1fr; }
+      .chapter.right { text-align: left; margin-left: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      body.organism h1 .char,
+      .scroll-hint,
+      .name-wrap.kick {
+        animation: none !important;
+      }
+      body.organism h1 .char {
+        opacity: 1;
+        transform: none;
+      }
+      .cursor, .cursor-ring { display: none !important; }
+      body.organism { cursor: auto; }
+    }
+
   </style>
 </head>
-<body>
-  <div class="stage">
-    <button
-      class="name-button"
-      id="nameButton"
-      type="button"
-      aria-haspopup="menu"
-      aria-expanded="false"
-      aria-controls="mainMenu"
-    >
-      <h1 aria-label="Bard Simpson">
-        <span class="char" style="--i:0">B</span><span class="char" style="--i:1">a</span><span class="char" style="--i:2">r</span><span class="char" style="--i:3">d</span><span class="space" aria-hidden="true"></span><span class="char" style="--i:4">S</span><span class="char" style="--i:5">i</span><span class="char" style="--i:6">m</span><span class="char" style="--i:7">p</span><span class="char" style="--i:8">s</span><span class="char" style="--i:9">o</span><span class="char" style="--i:10">n</span>
-      </h1>
-    </button>
+<body class="organism" data-scene="0">
+  <a class="a11y" href="#main">Skip to content</a>
+  <canvas class="fx-gl" id="fxGl" aria-hidden="true"></canvas>
+  <canvas class="fx-2d" id="fx2d" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
 
-    <p class="hint">Tap the name</p>
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+  <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
-    <div class="menu" id="mainMenu" role="menu" hidden>
-      <button type="button" role="menuitem" id="openDash">
-        <span class="label">Dashboard</span>
-        <span class="meta">Home</span>
-      </button>
-      <button type="button" role="menuitem" id="openTodo">
-        <span class="label">Todo list</span>
-        <span class="meta">Open</span>
-      </button>
-      <button type="button" role="menuitem" id="openGame">
-        <span class="label">Terafab Idle</span>
-        <span class="meta">Play</span>
-      </button>
-      <button type="button" role="menuitem" id="openHunt">
-        <span class="label">Terafab Hunt</span>
-        <span class="meta">Puzzle</span>
-      </button>
+  <header class="hud">
+    <div class="hud-brand">Bard Simpson</div>
+    <div class="hud-scene" id="sceneLabel">Awaken</div>
+    <div class="hud-actions">
+      <button type="button" class="ghost-btn" id="soundBtn" aria-pressed="false">Sound off</button>
+      <button type="button" class="ghost-btn" id="openDashHud" data-magnetic>Dashboard</button>
     </div>
-  </div>
+  </header>
 
-  <div class="backdrop" id="backdrop" hidden></div>
+  <main id="main" class="story">
+    <section class="story-hero" id="awaken">
+      <div class="stage" style="padding:0;">
+        <div class="name-wrap" id="nameRoot">
+          <button
+            class="name-button"
+            id="nameButton"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="mainMenu"
+            data-magnetic
+          >
+            <h1 aria-label="Bard Simpson">
+              <span class="char" style="--i:0">B</span><span class="char" style="--i:1">a</span><span class="char" style="--i:2">r</span><span class="char" style="--i:3">d</span><span class="space" aria-hidden="true"></span><span class="char" style="--i:4">S</span><span class="char" style="--i:5">i</span><span class="char" style="--i:6">m</span><span class="char" style="--i:7">p</span><span class="char" style="--i:8">s</span><span class="char" style="--i:9">o</span><span class="char" style="--i:10">n</span>
+            </h1>
+          </button>
+        </div>
+        <p class="hint">Tap the name · portals await</p>
+        <div class="menu" id="mainMenu" role="menu" hidden>
+          <button type="button" role="menuitem" id="openDash">
+            <span class="label">Dashboard</span>
+            <span class="meta">Home</span>
+          </button>
+          <button type="button" role="menuitem" id="openTodo">
+            <span class="label">Todo list</span>
+            <span class="meta">Open</span>
+          </button>
+          <button type="button" role="menuitem" id="openGame">
+            <span class="label">Terafab Idle</span>
+            <span class="meta">Play</span>
+          </button>
+          <button type="button" role="menuitem" id="openHunt">
+            <span class="label">Terafab Hunt</span>
+            <span class="meta">Puzzle</span>
+          </button>
+        </div>
+        <p class="hero-sub">A living digital organism — cinematic, reactive, and still just a browser tab.</p>
+        <p class="scroll-hint">Scroll</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="sense">
+      <p class="tag">Sense</p>
+      <h2>Every cursor path bends the field</h2>
+      <p>Particles, neural nodes, and a soft WebGL atmosphere track you in real time. Click anywhere and the organism answers with light, physics, and optional sound.</p>
+    </section>
+
+    <section class="chapter right" id="play">
+      <p class="tag">Play</p>
+      <h2>Portals, not pages</h2>
+      <p>Dashboard, todos, Terafab Idle, and Terafab Hunt stay one gesture away — tools nested inside a spectacle instead of replacing it.</p>
+    </section>
+
+    <section class="chapter" id="become">
+      <p class="tag">Become</p>
+      <h2>Built to be screen-recorded</h2>
+      <p>Scroll-driven scenes, spatial typography, magnetic controls, adaptive audio, and seamless handoff into real apps. Beautiful, fast, and accessible when you ask it to calm down.</p>
+    </section>
+
+    <section class="portal-grid" id="portals" aria-label="Portals">
+      <button type="button" class="portal" id="portalDash" data-magnetic>
+        <em>01</em>
+        <strong>Dashboard</strong>
+        <span>Live local stats across todos and Terafab runs.</span>
+      </button>
+      <button type="button" class="portal" id="portalTodo" data-magnetic>
+        <em>02</em>
+        <strong>Todo list</strong>
+        <span>Capture the next move before the field forgets.</span>
+      </button>
+      <button type="button" class="portal" id="portalIdle" data-magnetic>
+        <em>03</em>
+        <strong>Terafab Idle</strong>
+        <span>Starlink trains, wafer clicks, orbital cadence.</span>
+      </button>
+      <button type="button" class="portal" id="portalHunt" data-magnetic>
+        <em>04</em>
+        <strong>Terafab Hunt</strong>
+        <span>Pixel queues, dock pressure, cleanroom puzzles.</span>
+      </button>
+    </section>
+  </main>
+
+<div class="backdrop" id="backdrop" hidden></div>
 
   <aside
     class="panel"
@@ -2080,9 +2531,11 @@
     hidden
   ></div>
 
+  <script src="assets/js/organism.js"></script>
   <script src="assets/js/terafab.js"></script>
   <script src="assets/js/terafab-hunt.js"></script>
   <script src="assets/js/dashboard.js"></script>
+
   <script>
     (function () {
       const storageKey = "bard-simpson-todos";
@@ -2410,6 +2863,40 @@
         saveTodos();
         renderTodos();
         todoInput.focus();
+      });
+
+      
+      // Portals + organism
+      const portalDash = document.getElementById("portalDash");
+      const portalTodo = document.getElementById("portalTodo");
+      const portalIdle = document.getElementById("portalIdle");
+      const portalHunt = document.getElementById("portalHunt");
+      const openDashHud = document.getElementById("openDashHud");
+      if (portalDash) portalDash.addEventListener("click", () => openDashPanel());
+      if (portalTodo) portalTodo.addEventListener("click", () => openTodoPanel());
+      if (portalIdle) portalIdle.addEventListener("click", () => openGamePanel());
+      if (portalHunt) portalHunt.addEventListener("click", () => openHuntPanel());
+      if (openDashHud) openDashHud.addEventListener("click", () => openDashPanel());
+
+      if (window.BardOrganism) {
+        window.__organism = window.BardOrganism.createOrganism({
+          canvas: document.getElementById("fx2d"),
+          glCanvas: document.getElementById("fxGl"),
+          root: document.body,
+          cursor: document.getElementById("cursor"),
+          cursorRing: document.getElementById("cursorRing"),
+          progress: document.getElementById("progress"),
+          sceneLabel: document.getElementById("sceneLabel"),
+          soundBtn: document.getElementById("soundBtn"),
+          nameRoot: document.getElementById("nameRoot")
+        });
+      }
+
+      // Pulse organism when opening portals
+      const pulse = () => window.__organism && window.__organism.pulse();
+      ["openDash","openTodo","openGame","openHunt"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("click", pulse);
       });
 
       renderTodos();
