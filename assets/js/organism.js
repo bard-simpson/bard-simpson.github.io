@@ -319,13 +319,14 @@
     }
 
     function sceneFromScroll(s) {
-      if (s < 0.22) return 0;
-      if (s < 0.48) return 1;
-      if (s < 0.74) return 2;
-      return 3;
+      if (s < 0.16) return 0;
+      if (s < 0.34) return 1;
+      if (s < 0.56) return 2; // Machi town
+      if (s < 0.78) return 3;
+      return 4;
     }
 
-    const sceneNames = ["Awaken", "Sense", "Play", "Become"];
+    const sceneNames = ["Awaken", "Sense", "Machi", "Play", "Become"];
 
     function updateScroll() {
       const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
